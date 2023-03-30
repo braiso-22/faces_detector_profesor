@@ -41,7 +41,7 @@ def guardar_labels(root, name, data):
     if (csv_output_dir / csv_filename).exists():
         return
     df = pd.DataFrame([data], columns=columns)
-    df.to_csv(csv_output_dir / csv_filename, mode='a', header=False, index=False)
+    df.to_csv(csv_output_dir / csv_filename, mode='a', header=False, index=False, sep=' ')
 
 
 def generar_giradas(image, params):
