@@ -3,6 +3,7 @@ import cv2 as cv
 import os
 from pathlib import Path
 import pandas as pd
+import matplotlib.pyplot as plt
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 face_cascade = cv.CascadeClassifier(cv.data.haarcascades + '/haarcascade_frontalface_alt2.xml')
@@ -60,7 +61,7 @@ def extraer_labels(image, params):
     x, y, w, h = face
 
     h_image, w_image, _ = image.shape
-    face = [counter, x / w_image, y / h_image, w / w_image, h / h_image]
+    face = [counter, (x + (w / 2)) / w_image, (y + (h / 2)) / h_image, w / w_image, h / h_image]
     guardar_labels(root, filename, face)
 
 
@@ -83,6 +84,7 @@ def recorrer_imagenes(image_dir, operacion):
                 delete_image(path)
                 continue
             face = faces[0]
+            x, y, w, h = face
             operacion(
                 image,
                 {
@@ -96,13 +98,35 @@ def recorrer_imagenes(image_dir, operacion):
         counter += 1
 
 
+def move_files_to_new_dir(image_dir):
+    for root, dirs, files in os.walk(image_dir):
+        print(root.split("\\")[-1])
+        for file in files:
+            file = file.split(".")
+            filename = file[0]
+            extension = file[1]
+            if not extension == "png" and not extension == "jpg" and not extension == "jpeg" and not extension == "txt":
+                continue
+            file = filename + "." + extension
+            path = os.path.join(root, file)
+            new_path = os.path.join(image_dir, file)
+            try:
+                os.rename(path, new_path)
+            except FileExistsError as e:
+                print("Error pasando el archivo: " + file + " seguramente ya existe en el directorio destino")
+
+
 def main():
     dir_images = input("Escribe el directorio de las imagenes: ")
     image_dir = os.path.join(BASE_DIR, dir_images)
+
     print("Generating rotated images...")
     recorrer_imagenes(image_dir, generar_giradas)
     print("Generating labels...")
     recorrer_imagenes(image_dir, extraer_labels)
+    respuesta = input("Quieres mover los archivos a una misma carpeta? (s/N): ")
+    if respuesta == "s":
+        move_files_to_new_dir(image_dir)
 
 
 if __name__ == '__main__':
